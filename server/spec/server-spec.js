@@ -11,12 +11,13 @@ describe('Persistent Node Chat Server', () => {
     user: 'root',
     password: '',
     database: 'chat',
+    multipleStatements: true
   });
 
   beforeAll((done) => {
     dbConnection.connect();
 
-       const tablename = ''; // TODO: fill this out
+    const tablename = 'messages'; // TODO: fill this out
 
     /* Empty the db table before all tests so that multiple tests
      * (or repeated runs of the tests)  will not fail when they should be passing
@@ -63,10 +64,30 @@ describe('Persistent Node Chat Server', () => {
       });
   });
 
+
+  // CREATE TABLE messages (
+  //   /* Describe your table here.*/
+  //   id int NOT NULL AUTO_INCREMENT,
+  //   room_id int,
+  //   user_id int,
+  //   text varchar(200),
+  //   PRIMARY KEY (id),
+  //   FOREIGN KEY (user_id) REFERENCES users(id),
+  //   FOREIGN KEY (room_id) REFERENCES rooms(id)
+
+
+  // );
   it('Should output all messages from the DB', (done) => {
     // Let's insert a message into the db
-       const queryString = '';
-       const queryArgs = [];
+    const message = 'Men like you can never change!';
+
+    const queryString = `
+      DELETE FROM rooms;
+      DELETE FROM users;
+      DELETE FROM messages;
+      INSERT INTO messages (text, user_id, room_id) VALUES (?, ?, ?);
+    `;
+    const queryArgs = [message, 1, 1];
     /* TODO: The exact query string and query args to use here
      * depend on the schema you design, so I'll leave them up to you. */
     dbConnection.query(queryString, queryArgs, (err) => {
@@ -78,8 +99,9 @@ describe('Persistent Node Chat Server', () => {
       axios.get(`${API_URL}/messages`)
         .then((response) => {
           const messageLog = response.data;
+          console.log(messageLog);
           expect(messageLog[0].text).toEqual(message);
-          expect(messageLog[0].roomname).toEqual(roomname);
+          expect(messageLog[0].room_id).toEqual(1);
           done();
         })
         .catch((err) => {
